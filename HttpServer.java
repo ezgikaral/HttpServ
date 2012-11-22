@@ -18,8 +18,9 @@ public class HttpServer extends Thread{
 	
 	public void run(){
 		String inputLine;
+		String clientrequest="";
 		try{
-			System.out.println("The client"+client.getInetAddress()+":"+client.getPort()+"is connected");
+			System.out.println("The client"+client.getInetAddress()+":"+client.getPort()+" is connected");
 			output=new PrintWriter(client.getOutputStream(),true);
 			input=new BufferedReader(new InputStreamReader(client.getInputStream()));
 			output.flush();
@@ -31,11 +32,42 @@ public class HttpServer extends Thread{
 						if(filename.equals("")){
 							filename="index.html";
 						}
-						File newfile= new File("/"+filename);
+						File newfile= new File(filename);
 						System.out.println("Requested file was "+filename);
 						write(newfile,output);
-					
+						output.flush();
+						if(tokens.hasMoreTokens()){
+							clientrequest=tokens.nextToken();
+							System.out.println("Client request is:"+clientrequest);
+						}
+
+						if (clientrequest.equals("yes")){
+							try{
+								System.out.println("Connection will continue for 5 seconds ");
+								Thread.sleep(5000L);
+								System.out.println("Socket is closing now");
+								output.close();
+								input.close();
+								client.close();
+								break;
+								
+							}
+							catch(Exception e ){
+								System.out.println("Exception occurred");
+							}
+						}
+						else{
+							System.out.println("Socket is closing now");
+							output.close();
+							input.close();
+							client.close();
+							break;
+							
+						}
+							
+						
 					}
+					
 				}
 			}
 		}
@@ -46,6 +78,8 @@ public class HttpServer extends Thread{
 	}
 	public void write(File newfile, PrintWriter output){
 		String line;
+		//newfile.getAbsolutePath();
+		//System.out.printf("Path is:"+newfile.getAbsolutePath());
 		if(newfile.exists()){
 			try{
 				FileReader freader=new FileReader(newfile);
@@ -71,33 +105,8 @@ public class HttpServer extends Thread{
 			System.out.println("File not found.");
 		}
 	}
-		
+	
 			
-	public static void main(String[] args) throws IOException{
-		ServerSocket serverSocket=null;
-		final int PortNo=80;
-		try{
-			serverSocket=new ServerSocket(PortNo);
-			
-		}
-		catch(IOException e)
-		{
-			System.err.println("Could not listen on port:"+PortNo);
-			System.exit(1);
-		}
-		while(true)
-		{
-			try{
-				Socket client=serverSocket.accept();
-				new HttpServer(client).start();
-			}
-			catch(IOException e){
-				System.err.println("Failed accept");
-				System.exit(1);
-				
-			}
-		}
-	}
 }
 			
 							
